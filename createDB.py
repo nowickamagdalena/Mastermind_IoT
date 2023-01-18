@@ -17,10 +17,11 @@ def create_database():
         score integer,
         time_in_seconds integer 
     )""")
-    connection.commit()
+    connection.commit() 
     connection.close()
     print("The players database created.")
 
 
 if __name__ == "__main__":
     create_database()
+    
