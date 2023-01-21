@@ -31,25 +31,37 @@ def logoutPlayer():
     currentPlayerId = 0
 
 def startPlayersGame():
-    global startGameTime, currentGameDatetime
-    startGameTime = time.time()
-    registered_date = datetime.datetime.now()
-    currentGameDatetime = registered_date.strftime("%d/%m/%Y %H:%M:%S")
+    if(currentPlayerId == 0):
+        # TODO display this message on the OLED
+        print("player need to log in first")
+    else:
+        global startGameTime, currentGameDatetime
+        startGameTime = time.time()
+        registered_date = datetime.datetime.now()
+        currentGameDatetime = registered_date.strftime("%d/%m/%Y %H:%M:%S")
 
 def getGameDurationInSec():
     endGameTime = time.time()
     return endGameTime - startGameTime
 
+#TODO run when player quesses correct code or looses
 def savePlayersGame(player_id):
     gameTime = getGameDurationInSec()
     score = getPlayersScore()
-    client.publish("player/ID", str(player_id) + ";" + str(currentGameDatetime) + ";" + str(score) + ";" + str(gameTime))
+    client.publish("player/ID", "save_game" + ";" + str(player_id) + ";" + str(currentGameDatetime) + ";" + str(score) + ";" + str(round(gameTime, 2)))
 
 def getPlayersScore():
     # TODO: get actual score from the game
     return 0
 
 def rfidRead():
+    # ONLY FOR TESTS WITHOUT RASPBERRY:
+    # loginPlayer(1234)
+    # startPlayersGame()
+    # time.sleep(2.2)
+    # savePlayersGame(currentPlayerId)
+    # client.publish("player/ID", "player_score" + ";" + str(currentPlayerId))
+
     MIFAREReader = MFRC522()
     (status, TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
     if status == MIFAREReader.MI_OK:
@@ -66,6 +78,7 @@ def rfidRead():
             elif(currentPlayerId == num):
                 logoutPlayer()
             else:
+                # TODO display this message on the OLED
                 print("Current player needs to log out")
 
             while(cardOn):
@@ -75,9 +88,11 @@ def rfidRead():
     
 def process_message(client, userdata, message):
     # Decode message.
-    player_games = (str(message.payload.decode("utf-8"))).split(";")
-    for game_row in player_games:
-        print(game_row)
+    message_decoded = (str(message.payload.decode("utf-8"))).split(";")
+    if(message_decoded[0] == "player_score_results"):
+        print("got scores")
+        for game_row in message_decoded[1:]:
+            print(game_row)
 
 
 def buzzer(state):
@@ -93,7 +108,7 @@ def connect_to_broker():
     client.on_message = process_message
     # Send message about conenction.
     client.loop_start()
-    client.subscribe("player/ID")
+    client.subscribe("player/scores")
     call_broker_connection("Client connected")
 
 

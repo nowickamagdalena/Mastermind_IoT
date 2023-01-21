@@ -15,7 +15,7 @@ def create_database():
         rfid text,
         date_of_game text,
         score integer,
-        time_in_seconds integer 
+        time_in_seconds real 
     )""")
     connection.commit() 
     connection.close()
