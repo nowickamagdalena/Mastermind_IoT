@@ -16,6 +16,8 @@ client = mqtt.Client()
 def process_message(client, userdata, message):
     # Decode message.
     message_decoded = (str(message.payload.decode("utf-8"))).split(";")
+    print("got message from event")
+    print(message_decoded)
 
     # Print message to console.
     if message_decoded[0] == "Client connected" or message_decoded[0] == "Client disconnected":
@@ -42,7 +44,7 @@ def save_game_to_DB(message_decoded):
 def print_player_score_board(player_rfid):
     connention = sqlite3.connect("players.db")
     cursor = connention.cursor()
-    cursor.execute("SELECT * FROM score_board WHERE rfid=" + str(player_rfid))
+    cursor.execute("SELECT * FROM score_board WHERE rfid=" + str(player_rfid) + " ORDER BY score ASC")
     game_entries = cursor.fetchall()
     messageForGame  ="player_score_results;"
 
